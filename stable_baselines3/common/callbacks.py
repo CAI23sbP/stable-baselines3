@@ -504,7 +504,7 @@ class EvalCallback(EventCallback):
             # Dump log so the evaluation results are printed with the correct timestep
             self.logger.record("time/total_timesteps", self.num_timesteps, exclude="tensorboard")
             self.logger.dump(self.num_timesteps)
-            if mean_reward  > -self.best_mean_reward :
+            if mean_reward  > self.best_mean_reward :
                 if self.verbose > 0:
                     print("New best mean reward!")
                 if self.best_model_save_path is not None:
