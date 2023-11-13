@@ -355,9 +355,6 @@ class EvalCallback(EventCallback):
         render: bool = False,
         verbose: int = 1,
         warn: bool = True,
-        success_rate: float = 0.7, ## start evaluation 
-        threshold_step: int =1, ## to start evaluation step (threshold)
-        list_reset_frq: int = 10, ## reset rate_list frquency
     ):
         super().__init__(callback_after_eval, verbose=verbose)
         self.info = None
@@ -367,7 +364,6 @@ class EvalCallback(EventCallback):
             self.callback_on_new_best.parent = self
         # self.threshold_rate = threshold_rate
         self.rate_list = deque()
-        self.success_rate = success_rate
         self.n_eval_episodes = n_eval_episodes
         self.eval_freq = eval_freq
         self.best_mean_reward = -np.inf
@@ -396,10 +392,11 @@ class EvalCallback(EventCallback):
         # For computing success rate
         self._is_success_buffer = []
         self.evaluations_successes = []
-        self.is_print = False
-        self.threshold_step = threshold_step
-        self.list_reset_frq = list_reset_frq
 
+        
+        self.fre_save = True
+        self.fre_save_path = best_model_save_path
+        self.count = 0
 
     def _init_callback(self) -> None:
         # Does not work in some corner cases, where the wrapper is not the same
@@ -504,6 +501,8 @@ class EvalCallback(EventCallback):
             # Dump log so the evaluation results are printed with the correct timestep
             self.logger.record("time/total_timesteps", self.num_timesteps, exclude="tensorboard")
             self.logger.dump(self.num_timesteps)
+            ###
+
             if mean_reward  > self.best_mean_reward :
                 if self.verbose > 0:
                     print("New best mean reward!")
@@ -525,7 +524,19 @@ class EvalCallback(EventCallback):
             if self.callback is not None:
                 continue_training = continue_training and self._on_event()
             
+        #after eval -> save frequency model
+        if self.fre_save:
+            folder_name = os.path.join(self.fre_save_path,f"freq_model")
+            if not os.path.exists(folder_name):
+                os.makedirs(folder_name)
 
+            path = os.path.join(folder_name, f"frequency_save_{self.count}.zip")
+            if os.path.isfile(path):
+                self.count+=1
+                self.model.save(os.path.join(path,f"frequency_save_{self.count}"))
+            else:
+                self.model.save(os.path.join(path,f"frequency_save_{self.count}"))
+                
         return continue_training
     
 
