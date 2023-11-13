@@ -524,19 +524,18 @@ class EvalCallback(EventCallback):
             if self.callback is not None:
                 continue_training = continue_training and self._on_event()
             
-        #after eval -> save frequency model
-        if self.fre_save:
-            folder_name = os.path.join(self.fre_save_path,f"freq_model")
-            if not os.path.exists(folder_name):
-                os.makedirs(folder_name)
-
-            path = os.path.join(folder_name, f"frequency_save_{self.count}.zip")
-            if os.path.isfile(path):
-                self.count+=1
-                self.model.save(os.path.join(path,f"frequency_save_{self.count}"))
-            else:
-                self.model.save(os.path.join(path,f"frequency_save_{self.count}"))
-                
+            #after eval -> save frequency model
+            if self.fre_save:
+                folder_name = os.path.join(self.fre_save_path,f"freq_model")
+                if not os.path.exists(folder_name):
+                    os.makedirs(folder_name)
+            
+                if os.path.isfile(os.path.join(folder_name,f"frequency_save_{self.count}.zip")):
+                    self.count+=1
+                    self.model.save(os.path.join(folder_name,f"frequency_save_{self.count}"))
+                else:
+                    self.model.save(os.path.join(folder_name,f"frequency_save_{self.count}"))
+            rospy.info(f"frequency model save :{self.count}")
         return continue_training
     
 
